@@ -1,0 +1,165 @@
+import { Callout, Code, CopyToClipboard, Playground } from 'nextra/components'
+
+export const nodeName = 'Story Protocol'
+
+## {nodeName} Installation Guide
+
+<Callout type="info">
+  This guide provides step-by-step instructions for installing a Story node on your system. Before you begin, ensure you have the necessary prerequisites.
+</Callout>
+
+
+## Prerequisites
+
+* **Operating System:** Linux (Ubuntu/Debian recommended) or macOS
+* **Go:** Version 1.18 or higher
+* **Git:** For cloning the repository
+* **Terminal:**  Access to a command-line interface
+
+### Hardware Requirement
+
+<Callout type="warning">
+  Ensure your system meets the following hardware requirements to run the Story node efficiently:
+</Callout>
+
+* **CPU:** 4 cores or more
+* **RAM:** 8 GB or more
+* **Disk Space:** 200 GB SSD or more
+* **Network:** Broadband internet connection with at least 1 Mbps upload/download speed
+
+## Installation
+### 1. Setup prerequisites
+
+```bash filename="Install Package" copy
+sudo apt update -q
+sudo apt install -y -qq make unzip clang pkg-config lz4 libssl-dev build-essential git jq ncdu bsdmainutils htop aria2 pv
+```
+
+```bash filename="Install Go" copy
+GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n1)
+wget "https://dl.google.com/go/${GO_VERSION}.linux-amd64.tar.gz"
+sudo tar -C /usr/local -xzf "${GO_VERSION}.linux-amd64.tar.gz"
+rm "${GO_VERSION}.linux-amd64.tar.gz"
+echo "export GOROOT=/usr/local/go" | tee -a ~/.profile
+echo "export GOPATH=\$HOME/go" | tee -a ~/.profile
+echo "export PATH=\$PATH:/usr/local/go/bin:\$HOME/go/bin" | tee -a ~/.profile
+source ~/.profile
+```
+
+### 2. Install Story & Geth
+
+```bash filename="Install Story" copy
+STORY_NAME="story-linux-amd64-0.11.0-aac4bfe"
+STORY_DOWNLOAD_URL="https://story-geth-binaries.s3.us-west-1.amazonaws.com/story-public/${STORY_NAME}.tar.gz"
+wget $STORY_DOWNLOAD_URL
+tar -xzvf "${STORY_NAME}.tar.gz"
+sudo chmod +x "${STORY_NAME}/story"
+sudo mv "${STORY_NAME}/story" /usr/local/bin/
+rm "${STORY_NAME}.tar.gz"
+```
+
+```bash filename="Install Geth" copy
+OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH_TYPE=$(uname -m)
+ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+GETH_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
+DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v0.9.4/${GETH_NAME}"
+wget $DOWNLOAD_URL
+sudo chmod +x $GETH_NAME
+sudo mv $GETH_NAME /usr/local/bin/story-geth
+```
+
+Verify the installation by checking the version
+```bash copy
+story version
+story-geth version
+```
+
+### 3. Configure the Node
+Use `story init` to set up your node for the Iliad testnet. Replace `'Your Node Name'` with a unique identifier.
+```bash copy
+$CHAIN_ID='iliad'
+$MONIKER='Your Node Name'
+$DAEMON_HOME=$HOME/.story
+story init --network $CHAIN_ID --moniker $MONIKER --home $DAEMON_HOME
+```
+
+### 4. Install and Initialize Cosmovisor
+Download the Cosmovisor binary using the `go install` command
+```bash copy
+go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@latest
+cosmovisor version
+```
+Initialize Cosmovisor
+```bash copy
+DAEMON_NAME=story DAEMON_HOME=$HOME/.story cosmovisor init $(which story)
+```
+
+### 5. Create Service
+
+To ensure that the Story and Geth processes run continuously and restart automatically on failure, you can create a systemd service. This will help manage the lifecycle of the processes and ensure they start on boot.
+
+Create a new systemd service file for Story:
+```bash filename="Create Story Service" copy
+sudo tee /etc/systemd/system/story.service >/dev/null <<EOF
+[Unit]
+Description=Cosmovisor Story Node
+After=network-online.target
+
+[Service]
+User=$USER
+Type=simple
+WorkingDirectory=$HOME/.story
+ExecStart=$(which cosmovisor) run run --home $HOME/.story
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=infinity
+LimitNPROC=infinity
+Environment="DAEMON_NAME=story"
+Environment="DAEMON_HOME=$HOME/.story"
+Environment="UNSAFE_SKIP_BACKUP=true"
+Environment="PATH=$PATH"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Create a new systemd service file for Geth:
+```bash filename="Create Geth Service" copy
+sudo tee /etc/systemd/system/story-geth.service >/dev/null <<EOF
+[Unit]
+Description=Story execution daemon
+After=network-online.target
+
+[Service]
+User=$USER
+ExecStart=$(which story-geth) --iliad --syncmode full --datadir $HOME/.story/geth/iliad
+Restart=always
+RestartSec=3
+LimitNOFILE=infinity
+LimitNPROC=infinity
+Environment="PATH=$PATH"
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Now apply the service configuration and start the services
+```bash copy
+sudo systemctl enable story.service
+sudo systemctl enable story-geth.service
+sudo systemctl restart story.service
+sudo systemctl restart story-geth.service
+```
+
+To check the logs for the story service, use the following command:
+```bash copy
+sudo journalctl -fu story -o cat
+```
+To view the logs for the geth service, use the following command:
+```bash copy
+sudo journalctl -fu story-geth -o cat
+```
+
+### 6. Applying Snapshot
