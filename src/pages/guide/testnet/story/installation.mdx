@@ -1,4 +1,4 @@
-import { Callout, Code, CopyToClipboard, Playground } from 'nextra/components'
+import { Callout, Code, CopyToClipboard, Playground, Tabs } from 'nextra/components'
 
 export const nodeName = 'Story Protocol'
 
@@ -163,3 +163,58 @@ sudo journalctl -fu story-geth -o cat
 ```
 
 ### 6. Applying Snapshot
+To apply a snapshot for faster synchronization, follow the steps below:
+
+#### Download snapshot
+<Tabs items={['Default (Prunned)', 'Archive']}>
+  <Tabs.Tab>
+```bash copy
+STORY_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/default/story.tar.lz4"
+STORY_GETH_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/default/geth.tar.lz4"
+(echo $STORY_SNAPSHOT_URL; echo $STORY_GETH_SNAPSHOT_URL) | aria2c -x 16 -s 16 -k 1M -i -
+```
+  </Tabs.Tab>
+  <Tabs.Tab>
+```bash copy
+STORY_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/archive/story.tar.lz4"
+STORY_GETH_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/archive/geth.tar.lz4"
+(echo $STORY_SNAPSHOT_URL; echo $STORY_GETH_SNAPSHOT_URL) | aria2c -x 16 -s 16 -k 1M -i -
+```
+  </Tabs.Tab>
+</Tabs>
+
+#### Stop Service
+```bash copy
+sudo systemctl stop story
+sudo systemctl stop story-geth
+```
+
+#### Backup Files
+```bash copy
+cp $HOME/.story/story/data/priv_validator_state.json $HOME/.story/priv_validator_state.json.backup
+```
+
+#### Remove Old Data
+```bash copy
+rm -rf $HOME/.story/story/data
+rm -rf $HOME/.story/geth/iliad/geth/chaindata
+```
+
+#### Extract Snapshot
+```bash copy
+mkdir -p $HOME/.story/story/data
+mkdir -p $HOME/.story/geth/iliad/geth/chaindata
+lz4 -d -c story.tar.lz4 | pv | sudo tar xv -C $HOME/.story/story/ > /dev/null
+lz4 -d -c geth.tar.lz4 | pv | sudo tar xv -C $HOME/.story/geth/iliad/geth/ > /dev/null
+```
+
+#### Restore Files
+```bash copy
+cp $HOME/.story/priv_validator_state.json.backup $HOME/.story/story/data/priv_validator_state.json
+```
+
+#### Start Service
+```bash copy
+sudo systemctl start story
+sudo systemctl start story-geth
+```
