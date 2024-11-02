@@ -47,6 +47,6 @@ jobs:
           script: |
             docker pull syhdtmp/aldebaranode-docs:main
             docker container stop aldebaranode-docs
-            docker container rm aldebaranode-docs
+            docker container rm -f aldebaranode-docs || true
             docker run -d --name aldebaranode-docs -p 5003:3000 syhdtmp/aldebaranode-docs:main
-            docker rmi $(docker images syhdtmp/aldebaranode-docs -f "dangling=true" -q)
+            docker rmi $(docker images syhdtmp/aldebaranode-docs -f "dangling=true" -q) || true
