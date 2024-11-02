@@ -26,7 +26,7 @@ export default {
     const title = `${config.title} – Aldebaranode Docs`
     const description =
       config.frontMatter.description || 'Aldebaranode: Blockchain Guide & Docs'
-    const image = config.frontMatter.image || 'https://nextra.site/og.jpeg'
+    const image = config.frontMatter.image || 'https://aldebaranode.com/assets/horizontal/colour-bg-black-horizontal.jpg'
     return (
       <>
         <title>{title}</title>
@@ -40,8 +40,16 @@ export default {
         <meta name="apple-mobile-web-app-title" content="Nextra" />
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
 
+        <link rel="icon" type="image/svg+xml" href="https://aldebaranode.xyz/assets/logo.png" media="(prefers-color-scheme: light)" />
+        <link rel="icon" type="image/svg+xml" href="https://aldebaranode.xyz/assets/logo.png" media="(prefers-color-scheme: dark)" />
+
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:site" content="https://nextra.site" />
+        <meta property="twitter:domain" content="aldebaranode.xyz" />
+        <meta property="twitter:url" content="https://docs.aldebaranode.xyz/" />
+        <meta name="twitter:title" content={title} />
+        <meta name="twitter:description"
+          content={description} />
+        <meta name="twitter:image" content={image} />
         <link
           rel="apple-touch-icon"
           sizes="180x180"

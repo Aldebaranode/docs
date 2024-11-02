@@ -5,7 +5,7 @@ export const nodeName = 'Story Protocol'
 ## {nodeName} Installation Guide
 
 <Callout type="info">
-  This guide provides step-by-step instructions for installing a Story node on your system. Before you begin, ensure you have the necessary prerequisites.
+  This guide provides step-by-step instructions for installing a {nodeName} node on your system. Before you begin, ensure you have the necessary prerequisites.
 </Callout>
 
 
@@ -19,7 +19,7 @@ export const nodeName = 'Story Protocol'
 ### Hardware Requirement
 
 <Callout type="warning">
-  Ensure your system meets the following hardware requirements to run the Story node efficiently:
+  Ensure your system meets the following hardware requirements to run the {nodeName} node efficiently:
 </Callout>
 
 * **CPU:** 4 cores or more
@@ -49,13 +49,14 @@ source ~/.profile
 ### 2. Install Story & Geth
 
 ```bash filename="Install Story" copy
-STORY_NAME="story-linux-amd64-0.11.0-aac4bfe"
-STORY_DOWNLOAD_URL="https://story-geth-binaries.s3.us-west-1.amazonaws.com/story-public/${STORY_NAME}.tar.gz"
+OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH_TYPE=$(uname -m)
+ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
+STORY_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
+STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v0.12.0/${STORY_NAME}"
 wget $STORY_DOWNLOAD_URL
-tar -xzvf "${STORY_NAME}.tar.gz"
 sudo chmod +x "${STORY_NAME}/story"
 sudo mv "${STORY_NAME}/story" /usr/local/bin/
-rm "${STORY_NAME}.tar.gz"
 ```
 
 ```bash filename="Install Geth" copy
@@ -63,8 +64,8 @@ OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 GETH_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
-DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v0.9.4/${GETH_NAME}"
-wget $DOWNLOAD_URL
+GETH_DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v0.10.0/${GETH_NAME}"
+wget $GETH_DOWNLOAD_URL
 sudo chmod +x $GETH_NAME
 sudo mv $GETH_NAME /usr/local/bin/story-geth
 ```
@@ -76,11 +77,11 @@ story-geth version
 ```
 
 ### 3. Configure the Node
-Use `story init` to set up your node for the Iliad testnet. Replace `'Your Node Name'` with a unique identifier.
+Use `story init` to set up your node for the Odyssey testnet. Replace `'Your Node Name'` with a unique identifier.
 ```bash copy
-$CHAIN_ID='iliad'
-$MONIKER='Your Node Name'
-$DAEMON_HOME=$HOME/.story
+CHAIN_ID='odyssey'
+MONIKER='Your Node Name'
+DAEMON_HOME=$HOME/.story
 story init --network $CHAIN_ID --moniker $MONIKER --home $DAEMON_HOME
 ```
 
@@ -92,7 +93,7 @@ cosmovisor version
 ```
 Initialize Cosmovisor
 ```bash copy
-DAEMON_NAME=story DAEMON_HOME=$HOME/.story cosmovisor init $(which story)
+DAEMON_NAME=story DAEMON_HOME=$HOME/.story/story cosmovisor init $(which story)
 ```
 
 ### 5. Create Service
@@ -109,14 +110,14 @@ After=network-online.target
 [Service]
 User=$USER
 Type=simple
-WorkingDirectory=$HOME/.story
-ExecStart=$(which cosmovisor) run run --home $HOME/.story
+WorkingDirectory=$HOME/.story/story
+ExecStart=$(which cosmovisor) run run --home $HOME/.story/story
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=infinity
 LimitNPROC=infinity
 Environment="DAEMON_NAME=story"
-Environment="DAEMON_HOME=$HOME/.story"
+Environment="DAEMON_HOME=$HOME/.story/story"
 Environment="UNSAFE_SKIP_BACKUP=true"
 Environment="PATH=$PATH"
 
@@ -134,7 +135,7 @@ After=network-online.target
 
 [Service]
 User=$USER
-ExecStart=$(which story-geth) --iliad --syncmode full --datadir $HOME/.story/geth/iliad
+ExecStart=$(which story-geth) --odyssey --syncmode full --datadir $HOME/.story/geth/odyssey
 Restart=always
 RestartSec=3
 LimitNOFILE=infinity
@@ -162,7 +163,13 @@ To view the logs for the geth service, use the following command:
 sudo journalctl -fu story-geth -o cat
 ```
 
-### 6. Applying Snapshot
+### 6. Applying Peers
+To connect to peers for network synchronization, follow the steps below:
+```bash copy
+sudo journalctl -fu story-geth -o cat
+```
+
+### 7. Applying Snapshot
 To apply a snapshot for faster synchronization, follow the steps below:
 
 #### Download snapshot
@@ -197,15 +204,15 @@ cp $HOME/.story/story/data/priv_validator_state.json $HOME/.story/priv_validator
 #### Remove Old Data
 ```bash copy
 rm -rf $HOME/.story/story/data
-rm -rf $HOME/.story/geth/iliad/geth/chaindata
+rm -rf $HOME/.story/geth/odyssey/geth/chaindata
 ```
 
 #### Extract Snapshot
 ```bash copy
 mkdir -p $HOME/.story/story/data
-mkdir -p $HOME/.story/geth/iliad/geth/chaindata
+mkdir -p $HOME/.story/geth/odyssey/geth/chaindata
 lz4 -d -c story.tar.lz4 | pv | sudo tar xv -C $HOME/.story/story/ > /dev/null
-lz4 -d -c geth.tar.lz4 | pv | sudo tar xv -C $HOME/.story/geth/iliad/geth/ > /dev/null
+lz4 -d -c geth.tar.lz4 | pv | sudo tar xv -C $HOME/.story/geth/odyssey/geth/ > /dev/null
 ```
 
 #### Restore Files
