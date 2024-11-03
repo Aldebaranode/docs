@@ -1,4 +1,4 @@
-import { useConfig } from 'nextra-theme-docs'
+import { useConfig, useThemeConfig } from 'nextra-theme-docs'
 import React from 'react'
 
 /* eslint sort-keys: error */
@@ -11,7 +11,6 @@ export default {
   editLink: {
     content: 'Edit this page on GitHub'
   },
-  faviconGlyph: '✦',
   navs: [
     {
       url: 'https://github.com/aldebaranode/docs',
@@ -19,7 +18,15 @@ export default {
     }
   ],
   logo: () => (
-    <span>Aldebaranode: Blockchain Guide & Docs</span>
+    <div style={{
+      display: 'flex',
+      gap: '8px',
+      alignItems: 'center',
+      padding: '8px 0'
+    }}>
+      <img src="https://aldebaranode.xyz/assets/logo.png" alt="Aldebaranode Logo" style={{ height: '32px' }} />
+      Aldebaranode - Blockchain Guide & Docs
+    </div>
   ),
   head: () => {
     const config = useConfig()
@@ -30,6 +37,7 @@ export default {
     return (
       <>
         <title>{title}</title>
+
         <meta property="og:title" content={title} />
         <meta name="description" content={description} />
         <meta property="og:description" content={description} />
@@ -40,9 +48,6 @@ export default {
         <meta name="apple-mobile-web-app-title" content="Nextra" />
         <meta name="msapplication-TileImage" content="/ms-icon-144x144.png" />
 
-        <link rel="icon" type="image/svg+xml" href="https://aldebaranode.xyz/assets/logo.png" media="(prefers-color-scheme: light)" />
-        <link rel="icon" type="image/svg+xml" href="https://aldebaranode.xyz/assets/logo.png" media="(prefers-color-scheme: dark)" />
-
         <meta name="twitter:card" content="summary_large_image" />
         <meta property="twitter:domain" content="aldebaranode.xyz" />
         <meta property="twitter:url" content="https://docs.aldebaranode.xyz/" />
@@ -50,35 +55,6 @@ export default {
         <meta name="twitter:description"
           content={description} />
         <meta name="twitter:image" content={image} />
-        <link
-          rel="apple-touch-icon"
-          sizes="180x180"
-          href="/apple-icon-180x180.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="192x192"
-          href="/android-icon-192x192.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="32x32"
-          href="/favicon-32x32.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="96x96"
-          href="/favicon-96x96.png"
-        />
-        <link
-          rel="icon"
-          type="image/png"
-          sizes="16x16"
-          href="/favicon-16x16.png"
-        />
       </>
     )
   },

@@ -164,9 +164,11 @@ sudo journalctl -fu story-geth -o cat
 ```
 
 ### 6. Applying Peers
-To connect to peers for network synchronization, follow the steps below:
+To enhance network synchronization, we recommend applying our peers by following the steps below, or you can change the RPC URL to your own desired RPC URL:
 ```bash copy
-sudo journalctl -fu story-geth -o cat
+PERSISTENT_PEERS=$(curl "https://scan.aldebaranode.xyz/api/scan/peers?rpc_url=https://rpc-story-testnet.a
+ldebaranode.xyz" | jq -r 'flatten | join(",")')
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PEERS\"/" $HOME/.story/story/config/config.toml
 ```
 
 ### 7. Applying Snapshot
