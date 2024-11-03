@@ -48,5 +48,5 @@ jobs:
             docker pull syhdtmp/aldebaranode-docs:main
             docker container stop aldebaranode-docs
             docker container rm -f aldebaranode-docs || true
-            docker run -d --name aldebaranode-docs -p 5003:3000 syhdtmp/aldebaranode-docs:main
+            docker run -d --name aldebaranode-docs --restart always -p 5003:3000 syhdtmp/aldebaranode-docs:main
             docker rmi $(docker images syhdtmp/aldebaranode-docs -f "dangling=true" -q) || true
