@@ -55,8 +55,8 @@ ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 STORY_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
 STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v0.12.0/${STORY_NAME}"
 wget $STORY_DOWNLOAD_URL
-sudo chmod +x "${STORY_NAME}/story"
-sudo mv "${STORY_NAME}/story" /usr/local/bin/
+sudo chmod +x $STORY_NAME
+sudo mv $STORY_NAME /usr/local/bin/story
 ```
 
 ```bash filename="Install Geth" copy
@@ -81,7 +81,7 @@ Use `story init` to set up your node for the Odyssey testnet. Replace `'Your Nod
 ```bash copy
 CHAIN_ID='odyssey'
 MONIKER='Your Node Name'
-DAEMON_HOME=$HOME/.story
+DAEMON_HOME=$HOME/.story/story
 story init --network $CHAIN_ID --moniker $MONIKER --home $DAEMON_HOME
 ```
 
@@ -135,7 +135,7 @@ After=network-online.target
 
 [Service]
 User=$USER
-ExecStart=$(which story-geth) --odyssey --syncmode full --datadir $HOME/.story/geth/odyssey
+ExecStart=$(which story-geth) --odyssey --syncmode full --datadir $HOME/.story/geth/odyssey  --http --http.addr 127.0.0.1 --http.port 8545 --ws --ws.addr 127.0.0.1 --ws.port 8546 --http.vhosts=*
 Restart=always
 RestartSec=3
 LimitNOFILE=infinity
