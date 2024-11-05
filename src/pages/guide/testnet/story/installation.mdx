@@ -52,7 +52,7 @@ source ~/.profile
 OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
-STORY_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
+STORY_NAME="story-${OS_TYPE}-${ARCH_TYPE}"
 STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v0.12.0/${STORY_NAME}"
 wget $STORY_DOWNLOAD_URL
 sudo chmod +x $STORY_NAME
