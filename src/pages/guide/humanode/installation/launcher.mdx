@@ -1,0 +1,74 @@
+import { Callout } from 'nextra/components'
+
+## Launcher Installation
+This is a straightforward installation procedure for the Humanode mainnet, assuming you already have a server up and running. For a more comprehensive and detailed installation, please refer to the [Official Documentation](https://gitbook.humanode.io/mainnet-guide/launcher/launch-and-run-a-node-using-launcher-app).
+
+### Prerequisites 
+Required for **Ubuntu 22.04 or higher**, install OpenSSL version 1.1.1o to ensure compatibility with mnemonic generation
+```bash copy
+mkdir $HOME/opt
+cd $HOME/opt
+wget https://www.openssl.org/source/openssl-1.1.1o.tar.gz
+tar -zxvf openssl-1.1.1o.tar.gz
+cd openssl-1.1.1o
+./config && make && make test
+mkdir $HOME/opt/lib
+mv $HOME/opt/openssl-1.1.1o/libcrypto.so.1.1 $HOME/opt/lib/
+mv $HOME/opt/openssl-1.1.1o/libssl.so.1.1 $HOME/opt/lib/
+sudo rm /usr/lib/libssl.so.1.1
+sudo rm /usr/lib64/libssl.so.1.1
+sudo rm /usr/lib/libcrypto.so.1.1
+sudo rm /usr/lib64/libcrypto.so.1.1
+sudo ln -s $HOME/opt/lib/libssl.so.1.1 /usr/lib/libssl.so.1.1
+sudo ln -s $HOME/opt/lib/libssl.so.1.1 /usr/lib64/libssl.so.1.1
+sudo ln -s $HOME/opt/lib/libcrypto.so.1.1 /usr/lib/libcrypto.so.1.1
+sudo ln -s $HOME/opt/lib/libcrypto.so.1.1 /usr/lib64/libcrypto.so.1.1
+```
+
+### 1. Download Launcher
+Download the launcher [here](https://launcher.humanode.io/)
+
+### 2. Create the Workspace
+Open your Humanode launcher and begin the installation by creating the workspace
+
+![Create Workspace](/humanode/create-workspace.png)
+
+### 3. Select Connection
+Choose the remote installation option to install Humanode on your VPS from your local computer.
+
+![Select Connection](/humanode/connection-type.png)
+
+### 4. Enter SSH Credentials
+Fill out your VPS SSH credentials, and adjust the auth mode based on your server settings. Set it to `Password` for the default configuration.
+
+![SSH Credentials](/humanode/ssh-credentials.png)
+
+### 5. Choose Chain Type
+Select the chain type. For this guide, choose `Humanode Mainnet`. Click start and wait for the binary installation process to complete.
+
+![Choose Chain Type](/humanode/choose-chain.png)
+
+### 6. Configure the node
+Go to settings panel to configure your node
+
+![Config Node](/humanode/goto-setting.png)
+
+Fill your node name, and left the rest as default, then click `Apply` button
+
+![Config 1](/humanode/fill-setting-1.png)
+
+Click the `Insert Mnemonic` button to generate your mnemonic. In the popup modal, click `Generate` and make sure to securely store your mnemonic. Paste it into the textarea box, then click the `Insert` button.
+
+![Generate Mnemonic](/humanode/generate-mnemonic.png)
+
+### 7. Start the node
+Return to the initial panel and click `Start the Node` to initiate your node.
+
+![Start Node](/humanode/start-node.png)
+
+After your node starts, wait for it to sync with the network first.
+
+![Wait Sync](/humanode/wait-sync.png)
+
+### 8. Become a Validator
+After your node has synced, you need to become a validator to begin producing and finalizing blocks. Start by scanning the QR code on your launcher to access the web app. After that, go to [this page](/guide/humanode/become-validator) for further steps.
