@@ -48,13 +48,13 @@ source ~/.profile
 
 ### 2. Install Empe Binary
 
-```bash filename="Install Story" copy
+```bash filename="Install Empe" copy
 OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 EMPE_NAME="emped_v0.2.2_${OS_TYPE}_${ARCH_TYPE}.tar.gz"
-EMPE_DOWNLOAD_URL="https://github.com/empe-io/empe-chain-releases/blob/master/v0.2.2/${EMPE_NAME}"
-wget $EMPE_DOWNLOAD_URL
+EMPE_DOWNLOAD_URL="https://github.com/empe-io/empe-chain-releases/raw/refs/heads/master/v0.2.2/${EMPE_NAME}"
+wget -O $EMPE_DOWNLOAD_URL
 tar -xvf $EMPE_NAME
 sudo chmod +x emped
 sudo mv emped /usr/local/bin/emped
@@ -71,19 +71,30 @@ Use `emped init` to set up your node for the Odyssey testnet. Replace `'Your Nod
 CHAIN_ID='empe-testnet-2'
 MONIKER='Your Node Name'
 DAEMON_HOME=$HOME/.empe-chain
-emped init --network $CHAIN_ID --moniker $MONIKER --home $DAEMON_HOME
-rm -rf ~/.empe-chain/config/genesis.json
+emped init $MONIKER --chain-id $CHAIN_ID --home $DAEMON_HOME
 ```
 
 ### 4. Configure the Settings
 ```bash copy
 DAEMON_HOME=$HOME/.empe-chain
 git clone https://github.com/empe-io/empe-chains.git
+```
+```bash copy
+DAEMON_HOME=$HOME/.empe-chain
+rm -rf ~/.empe-chain/config/genesis.json
 cp empe-chains/testnet-2/genesis.json $DAEMON_HOME/config/genesis.json
-sed -e "s|persistent_peers = \".*\"|persistent_peers = \"$(cat .data | grep -oP 'Persistent peers\s+\K\S+')\"|g" $DAEMON_HOME/config/config.toml > $DAEMON_HOME/config/config.toml.tmp
+sed -e "s|persistent_peers = \".*\"|persistent_peers = \"$(cat empe-chains/testnet-2/.data | grep -oP 'Persistent peers\s+\K\S+')\"|g" $DAEMON_HOME/config/config.toml > $DAEMON_HOME/config/config.toml.tmp
 mv $DAEMON_HOME/config/config.toml.tmp  $DAEMON_HOME/config/config.toml
-sed -e "s|minimum-gas-prices = \".*\"|minimum-gas-prices = \"$(cat .data | grep -oP 'Minimum Gas Price\s+\K\S+')\"|g" $DAEMON_HOME/config/app.toml > $DAEMON_HOME/config/app.toml.tmp
+sed -e "s|minimum-gas-prices = \".*\"|minimum-gas-prices = \"$(cat empe-chains/testnet-2/.data | grep -oP 'Minimum Gas Price\s+\K\S+')\"|g" $DAEMON_HOME/config/app.toml > $DAEMON_HOME/config/app.toml.tmp
 mv $DAEMON_HOME/config/app.toml.tmp  $DAEMON_HOME/config/app.toml
+```
+Change custom port (optional)
+```bash copy
+DAEMON_HOME=$HOME/.empe-chain
+PORT_PREFIX=26
+sed -i.bak -e "s%:26656%:${PORT_PREFIX}656%g;" ${DAEMON_HOME}/config/client.toml
+sed -i.bak -e "s%:1317%:${PORT_PREFIX}317%g; s%:8080%:${PORT_PREFIX}080%g; s%:9090%:${PORT_PREFIX}090%g; s%:9091%:${PORT_PREFIX}091%g; s%:8545%:${PORT_PREFIX}545%g; s%:8546%:${PORT_PREFIX}546%g; s%:6065%:${PORT_PREFIX}065%g" ${DAEMON_HOME}/config/app.toml
+sed -i.bak -e "s%:26658%:${PORT_PREFIX}658%g; s%:26657%:${PORT_PREFIX}657%g; s%:6060%:${PORT_PREFIX}060%g; s%:26656%:${PORT_PREFIX}656%g; s%:26660%:${PORT_PREFIX}660%g" ${DAEMON_HOME}/config/config.toml
 ```
 
 ### 5. Install and Initialize Cosmovisor
@@ -97,28 +108,28 @@ Initialize Cosmovisor
 DAEMON_NAME=emped DAEMON_HOME=$HOME/.empe-chain cosmovisor init $(which emped)
 ```
 
-### 5. Create Service
+### 6. Create Service
 
-To ensure that the Story and Geth processes run continuously and restart automatically on failure, you can create a systemd service. This will help manage the lifecycle of the processes and ensure they start on boot.
+To ensure that the Empeiria processes run continuously and restart automatically on failure, you can create a systemd service. This will help manage the lifecycle of the processes and ensure they start on boot.
 
-Create a new systemd service file for Story:
-```bash filename="Create Story Service" copy
-sudo tee /etc/systemd/system/story.service >/dev/null <<EOF
+Create a new systemd service file :
+```bash filename="Create Emped Service" copy
+sudo tee /etc/systemd/system/emped.service >/dev/null <<EOF
 [Unit]
-Description=Cosmovisor Story Node
+Description=Cosmovisor Empeiria Node
 After=network-online.target
 
 [Service]
 User=$USER
 Type=simple
-WorkingDirectory=$HOME/.story/story
-ExecStart=$(which cosmovisor) run run --home $HOME/.story/story
+WorkingDirectory=$HOME/.empe-chain
+ExecStart=$(which cosmovisor) run start --home $HOME/.empe-chain
 Restart=on-failure
 RestartSec=3
 LimitNOFILE=infinity
 LimitNPROC=infinity
-Environment="DAEMON_NAME=story"
-Environment="DAEMON_HOME=$HOME/.story/story"
+Environment="DAEMON_NAME=emped"
+Environment="DAEMON_HOME=$HOME/.empe-chain"
 Environment="UNSAFE_SKIP_BACKUP=true"
 Environment="PATH=$PATH"
 
@@ -127,103 +138,75 @@ WantedBy=multi-user.target
 EOF
 ```
 
-Create a new systemd service file for Geth:
-```bash filename="Create Geth Service" copy
-sudo tee /etc/systemd/system/story-geth.service >/dev/null <<EOF
-[Unit]
-Description=Story execution daemon
-After=network-online.target
-
-[Service]
-User=$USER
-ExecStart=$(which story-geth) --odyssey --syncmode full --datadir $HOME/.story/geth/odyssey  --http --http.addr 127.0.0.1 --http.port 8545 --ws --ws.addr 127.0.0.1 --ws.port 8546 --http.vhosts=*
-Restart=always
-RestartSec=3
-LimitNOFILE=infinity
-LimitNPROC=infinity
-Environment="PATH=$PATH"
-
-[Install]
-WantedBy=multi-user.target
-```
-
 Now apply the service configuration and start the services
 ```bash copy
-sudo systemctl enable story.service
-sudo systemctl enable story-geth.service
-sudo systemctl restart story.service
-sudo systemctl restart story-geth.service
+sudo systemctl enable emped.service
+sudo systemctl restart emped.service
 ```
 
-To check the logs for the story service, use the following command:
+To check the logs for the empeiria service, use the following command:
 ```bash copy
-sudo journalctl -fu story -o cat
-```
-To view the logs for the geth service, use the following command:
-```bash copy
-sudo journalctl -fu story-geth -o cat
+sudo journalctl -fu emped -o cat
 ```
 
 ### 6. Applying Peers
 To enhance network synchronization, we recommend applying our peers by following the steps below, or you can change the RPC URL to your own desired RPC URL:
 ```bash copy
-PERSISTENT_PEERS=$(curl "https://scan.aldebaranode.xyz/api/scan/peers?rpc_url=https://rpc-story-testnet.aldebaranode.xyz" | jq -r 'flatten | join(",")')
-sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PERSISTENT_PEERS\"/" $HOME/.story/story/config/config.toml
+PERSISTENT_PEERS=$(curl "https://scan.aldebaranode.xyz/api/scan/peers?rpc_url=https://rpc-empe-testnet.aldebaranode.xyz" | jq -r 'flatten | join(",")')
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PERSISTENT_PEERS\"/" $HOME/.empe-chain/config/config.toml
+```
+```bash copy
+sudo systemctl restart emped.service
 ```
 
 ### 7. Applying Snapshot
 To apply a snapshot for faster synchronization, follow the steps below:
 
 #### Download snapshot
-<Tabs items={['Default (Prunned)', 'Archive']}>
+<Tabs items={['Crypto Node', 'Dash Node']}>
   <Tabs.Tab>
 ```bash copy
-STORY_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/default/story.tar.lz4"
-STORY_GETH_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/default/geth.tar.lz4"
-(echo $STORY_SNAPSHOT_URL; echo $STORY_GETH_SNAPSHOT_URL) | aria2c -x 16 -s 16 -k 1M -i -
+SNAP_NAME=$(curl -s https://snapshot.cryptonode.id/empe-testnet/ | egrep -o ">empe-testnet-snapshot.*.tar.lz4" | tr -d ">")
+SNAPSHOT_URL="https://snapshot.cryptonode.id/empe-testnet/${SNAP_NAME}"
+(echo $SNAPSHOT_URL;) | aria2c -x 16 -s 16 -k 1M -i -
 ```
   </Tabs.Tab>
   <Tabs.Tab>
 ```bash copy
-STORY_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/archive/story.tar.lz4"
-STORY_GETH_SNAPSHOT_URL="https://snapshots.aldebaranode.xyz/story/archive/geth.tar.lz4"
-(echo $STORY_SNAPSHOT_URL; echo $STORY_GETH_SNAPSHOT_URL) | aria2c -x 16 -s 16 -k 1M -i -
+SNAP_NAME=$(curl -s https://snapshot.dashnode.org/empe-testnet/ | egrep -o ">empe-testnet-snapshot.*.tar.lz4" | tr -d ">")
+SNAPSHOT_URL="https://snapshot.dashnode.org/empe-testnet/${SNAP_NAME}"
+(echo $SNAPSHOT_URL;) | aria2c -x 16 -s 16 -k 1M -i -
 ```
   </Tabs.Tab>
 </Tabs>
 
 #### Stop Service
 ```bash copy
-sudo systemctl stop story
-sudo systemctl stop story-geth
+sudo systemctl stop emped
 ```
 
 #### Backup Files
 ```bash copy
-cp $HOME/.story/story/data/priv_validator_state.json $HOME/.story/priv_validator_state.json.backup
+cp $HOME/.empe-chain/data/priv_validator_state.json $HOME/.empe-chain/priv_validator_state.json.backup
 ```
 
 #### Remove Old Data
 ```bash copy
-rm -rf $HOME/.story/story/data
-rm -rf $HOME/.story/geth/odyssey/geth/chaindata
+rm -rf $HOME/.empe-chain/data
 ```
 
 #### Extract Snapshot
 ```bash copy
-mkdir -p $HOME/.story/story/data
-mkdir -p $HOME/.story/geth/odyssey/geth/chaindata
-lz4 -d -c story.tar.lz4 | pv | sudo tar xv -C $HOME/.story/story/ > /dev/null
-lz4 -d -c geth.tar.lz4 | pv | sudo tar xv -C $HOME/.story/geth/odyssey/geth/ > /dev/null
+mkdir -p $HOME/.empe-chain/data
+lz4 -d -c $SNAP_NAME | pv | tar xv -C $HOME/.empe-chain/ > /dev/null
 ```
 
 #### Restore Files
 ```bash copy
-cp $HOME/.story/priv_validator_state.json.backup $HOME/.story/story/data/priv_validator_state.json
+cp $HOME/.empe-chain/priv_validator_state.json.backup $HOME/.empe-chain/data/priv_validator_state.json
 ```
 
 #### Start Service
 ```bash copy
-sudo systemctl start story
-sudo systemctl start story-geth
+sudo systemctl start emped
 ```
