@@ -53,7 +53,7 @@ OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 STORY_NAME="story-${OS_TYPE}-${ARCH_TYPE}"
-STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v0.12.0/${STORY_NAME}"
+STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v0.12.1/${STORY_NAME}"
 wget $STORY_DOWNLOAD_URL
 sudo chmod +x $STORY_NAME
 sudo mv $STORY_NAME /usr/local/bin/story
@@ -64,7 +64,7 @@ OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 GETH_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
-GETH_DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v0.10.0/${GETH_NAME}"
+GETH_DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v0.10.1/${GETH_NAME}"
 wget $GETH_DOWNLOAD_URL
 sudo chmod +x $GETH_NAME
 sudo mv $GETH_NAME /usr/local/bin/story-geth
