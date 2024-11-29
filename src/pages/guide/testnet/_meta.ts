@@ -1,4 +1,5 @@
 export default {
   story: 'Story Protocol',
-  empeiria: 'Empeiria'
+  empeiria: 'Empeiria',
+  pipenetwork: 'Pipe Network'
 }
