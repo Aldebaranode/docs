@@ -15,14 +15,15 @@ jobs:
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          server: ${{ secrets.REGISTRY_URL }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
         with:
           images: |
-            syhdtmp/aldebaranode-docs
+            ${{ secrets.REGISTRY_URL }}/aldebaranode-docs
           tags: |
             type=sha
             type=schedule
@@ -45,8 +46,8 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_KEY }}
           script: |
-            docker pull syhdtmp/aldebaranode-docs:main
+            docker pull ${{ secrets.REGISTRY_URL }}/aldebaranode-docs:main
             docker container stop aldebaranode-docs
             docker container rm -f aldebaranode-docs || true
-            docker run -d --name aldebaranode-docs --restart always -p 5003:3000 syhdtmp/aldebaranode-docs:main
-            docker rmi $(docker images syhdtmp/aldebaranode-docs -f "dangling=true" -q) || true
+            docker run -d --name aldebaranode-docs --restart always -p 5003:3000 ${{ secrets.REGISTRY_URL }}/aldebaranode-docs:main
+            docker rmi $(docker images ${{ secrets.REGISTRY_URL }}/aldebaranode-docs -f "dangling=true" -q) || true
