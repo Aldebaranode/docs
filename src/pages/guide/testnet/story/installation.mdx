@@ -22,10 +22,10 @@ export const nodeName = 'Story Protocol'
   Ensure your system meets the following hardware requirements to run the {nodeName} node efficiently:
 </Callout>
 
-* **CPU:** 4 cores or more
-* **RAM:** 8 GB or more
-* **Disk Space:** 200 GB SSD or more
-* **Network:** Broadband internet connection with at least 1 Mbps upload/download speed
+* **CPU:** 8 cores or more
+* **RAM:** 32 GB or more
+* **Disk Space:** 500 GB SSD or more
+* **Network:** Broadband internet connection with at least 100 Mbps upload/download speed
 
 ## Installation
 ### 1. Setup prerequisites
@@ -53,7 +53,7 @@ OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 STORY_NAME="story-${OS_TYPE}-${ARCH_TYPE}"
-STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v0.12.1/${STORY_NAME}"
+STORY_DOWNLOAD_URL="https://github.com/piplabs/story/releases/download/v1.1.0/${STORY_NAME}"
 wget $STORY_DOWNLOAD_URL
 sudo chmod +x $STORY_NAME
 sudo mv $STORY_NAME /usr/local/bin/story
@@ -64,7 +64,7 @@ OS_TYPE=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH_TYPE=$(uname -m)
 ARCH_TYPE=$(echo $ARCH_TYPE | sed 's/x86_64/amd64/' | sed 's/aarch64/arm64/')
 GETH_NAME="geth-${OS_TYPE}-${ARCH_TYPE}"
-GETH_DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v0.10.1/${GETH_NAME}"
+GETH_DOWNLOAD_URL="https://github.com/piplabs/story-geth/releases/download/v1.0.1/${GETH_NAME}"
 wget $GETH_DOWNLOAD_URL
 sudo chmod +x $GETH_NAME
 sudo mv $GETH_NAME /usr/local/bin/story-geth
@@ -77,9 +77,9 @@ story-geth version
 ```
 
 ### 3. Configure the Node
-Use `story init` to set up your node for the Odyssey testnet. Replace `'Your Node Name'` with a unique identifier.
+Use `story init` to set up your node for the Aeneid testnet. Replace `'Your Node Name'` with a unique identifier.
 ```bash copy
-CHAIN_ID='odyssey'
+CHAIN_ID='aeneid'
 MONIKER='Your Node Name'
 DAEMON_HOME=$HOME/.story/story
 story init --network $CHAIN_ID --moniker $MONIKER --home $DAEMON_HOME
@@ -135,7 +135,7 @@ After=network-online.target
 
 [Service]
 User=$USER
-ExecStart=$(which story-geth) --odyssey --syncmode full --datadir $HOME/.story/geth/odyssey  --http --http.addr 127.0.0.1 --http.port 8545 --ws --ws.addr 127.0.0.1 --ws.port 8546 --http.vhosts=*
+ExecStart=$(which story-geth) --aeneid --syncmode full --datadir $HOME/.story/geth/aeneid  --http --http.addr 127.0.0.1 --http.port 8545 --ws --ws.addr 127.0.0.1 --ws.port 8546 --http.vhosts=*
 Restart=always
 RestartSec=3
 LimitNOFILE=infinity
@@ -205,15 +205,15 @@ cp $HOME/.story/story/data/priv_validator_state.json $HOME/.story/priv_validator
 #### Remove Old Data
 ```bash copy
 rm -rf $HOME/.story/story/data
-rm -rf $HOME/.story/geth/odyssey/geth/chaindata
+rm -rf $HOME/.story/geth/aeneid/geth/chaindata
 ```
 
 #### Extract Snapshot
 ```bash copy
 mkdir -p $HOME/.story/story/data
-mkdir -p $HOME/.story/geth/odyssey/geth/chaindata
+mkdir -p $HOME/.story/geth/aeneid/geth/chaindata
 lz4 -d -c story.tar.lz4 | pv | sudo tar xv -C $HOME/.story/story/ > /dev/null
-lz4 -d -c geth.tar.lz4 | pv | sudo tar xv -C $HOME/.story/geth/odyssey/geth/ > /dev/null
+lz4 -d -c geth.tar.lz4 | pv | sudo tar xv -C $HOME/.story/geth/aeneid/geth/ > /dev/null
 ```
 
 #### Restore Files
