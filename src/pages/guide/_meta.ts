@@ -3,6 +3,7 @@ export default {
     type: 'separator',
     title: 'Mainnet'
   },
+  story: 'Story',
   humanode: 'Humanode',
   '-- Testnet': {
     type: 'separator',
