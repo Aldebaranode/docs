@@ -1,0 +1,30 @@
+## Become Validator
+
+### Mandatory step, Get your validator key
+```bash
+story validator export --export-evm-key
+```
+> Make sure to backup your validator key after using the command above!
+
+### Create Validator (Aeneid)
+```bash
+story validator create 
+  --stake ${AMOUNT_TO_STAKE_IN_WEI} \
+  --moniker ${VALIDATOR_NAME} \
+  --rpc ${rpc} \
+  --chain-id 1315 \
+  --commission-rate ${rate} \
+  --unlocked=false
+```
+Flags Details
+- **--stake**: Sets the amount the validator will self-delegate in wei (default is 1024000000000000000000 wei).
+- **--moniker**: Defines a custom name for the validator, visible to users on the network.
+- **--chain-id**: Specifies the Chain ID for the transaction. 
+- **--commission-rate**: Sets the validator's commission rate in bips (1% = 100 bips). For instance, 1000 represents a 10% commission (default is 1000).
+- **--max-commission-change-rate**: Sets the maximum rate at which the validator's commission can change, in bips. For example, 100 represents a maximum change of 1% (default is 1000).
+- **--max-commission-rate**: Defines the maximum commission rate the validator can charge, in bips. For instance, 5000 allows a 50% maximum rate (default is 5000).
+- **--private-key**: Uses a specified private key for signing the transaction. If not set, the key in priv_validator_key.json will be used.
+- **--rpc**: Sets the RPC URL to connect to the network (our aeneid rpc: https://rpc-storyevm-testnet.aldebaranode.xyz).
+- **--unlocked**: Determines if unlocked token staking is supported (true for unlocked staking, false for locked staking). By default, this is set to true.
+
+This guide provides only the basic bootstrapping instructions for becoming a Validator in the Story Aeneid Network. For more comprehensive operations, please refer to the [Official Documentation](https://docs.story.foundation/docs/validator-operations)
