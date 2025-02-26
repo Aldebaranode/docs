@@ -43,7 +43,7 @@ Install Git to clone the installer repository.
 sudo apt-get install git -y
 ```
 ```bash copy
-git clone https://github.com/mrheed/cortensor-installer.git
+git clone https://github.com/mrheed/cortensor-installer.git && cd cortensor-installer
 ```
 
 ## Step 3 - Config Docker Compose
@@ -69,6 +69,10 @@ Ensure that the working directory is within the installer folder.
 Run your nodes using this command
 ```bash copy
 docker compose up -d
+```                
+Run this command to check all the container logs
+```bash copy
+docker compose logs --tail 100 -f
 ```
 Run this command to stop the nodes
 ```bash copy
