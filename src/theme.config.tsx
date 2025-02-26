@@ -61,11 +61,7 @@ export default {
   footer: {
     content: () => (
       <span>
-        {new Date().getFullYear()} ©{' '}
-        <a href="https://aldebaranode.xyz" target="_blank">
-          Aldebaranode
-        </a>
-        .
+        {new Date().getFullYear()} © <a href="https://aldebaranode.xyz" target="_blank" style={{ textDecoration: 'underline', color: 'lightblue' }}>Aldebaranode.</a> All rights reserved.{' '}
       </span>
     )
   }

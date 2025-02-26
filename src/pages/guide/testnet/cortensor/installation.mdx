@@ -1,0 +1,80 @@
+import { Callout } from 'nextra/components'
+
+# Cortensor Network Installation Guide using Docker
+This is the process to install and configure Cortensor or multiple mining nodes using Docker to maximize resource usage and ease of management.
+
+## Prerequisites
+<Callout type="info">
+Ensure that you meet the hardware requirements to run the Cortensor network. For detailed information, you can visit the [official website](https://docs.cortensor.network/getting-started/quick-start-guide#hardware-requirements).
+</Callout>
+
+## Step 1 - Install Docker
+Run the following command to uninstall all conflicting packages:
+```bash copy
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+```
+
+Set up Docker's apt repository.
+```bash copy
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
+
+Install the Docker packages.
+
+```bash copy
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+```
+
+## Step 2 - Clone Installer Repository
+Install Git to clone the installer repository.
+```bash copy
+sudo apt-get install git -y
+```
+```bash copy
+git clone https://github.com/mrheed/cortensor-installer.git
+```
+
+## Step 3 - Config Docker Compose
+Run the build.sh script. The script will do the following:
+- Build the Dockerfile for the Cortensor image
+- Generate the docker-compose.yaml file for you to adjust your total nodes
+
+```bash copy
+bash build.sh
+```
+
+After the docker-compose.yaml is generated, you need to modify the environment variables for the cortensor section:
+- **RPC_URL**: Your ARB Sepolia RPC URL, which you can obtain by running your own node or using a service provider like Ankr, Alchemy, or Infura.
+- **PUBLIC_KEY**: The EVM address of your miner node.
+- **PRIVATE_KEY**: The EVM private key of your miner node.
+
+![Env Variable](/cortensor/env.png)
+
+## Step 4 - Run the Nodes
+<Callout type="info">
+Ensure that the working directory is within the installer folder.
+</Callout>
+Run your nodes using this command
+```bash copy
+docker compose up -d
+```
+Run this command to stop the nodes
+```bash copy
+docker compose down
+```
+Run this command to delete all nodes
+```bash copy
+docker compose rm
+```
