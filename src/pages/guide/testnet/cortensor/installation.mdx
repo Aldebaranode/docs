@@ -82,3 +82,12 @@ Run this command to delete all nodes
 ```bash copy
 docker compose rm
 ```
+
+## Upgrade Step
+```bash copy
+docker compose down
+docker compose rm
+docker image rm cortensor-image
+docker build --no-cache -t cortensor-image .
+docker compose up -d
+```
