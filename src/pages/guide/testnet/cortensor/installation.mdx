@@ -59,6 +59,10 @@ After the docker-compose.yaml is generated, you need to modify the environment v
 - **RPC_URL**: Your ARB Sepolia RPC URL, which you can obtain by running your own node or using a service provider like Ankr, Alchemy, or Infura.
 - **PUBLIC_KEY**: The EVM address of your miner node.
 - **PRIVATE_KEY**: The EVM private key of your miner node.
+- **LLM_OPTION_GPU**: Enable GPU support (0 or 1).
+- **LLM_OPTION_GPU_THRESHOLD**: Leave to -1 as automatic mode or you can configure your threshold, this represents number of LLM layers to be offload to GPU.
+
+For more information about GPU support please refer to the [official website](https://docs.cortensor.network/getting-started/installation-and-setup#enable-gpu-support)
 
 ![Env Variable](/cortensor/env.png)
 
@@ -84,10 +88,7 @@ docker compose rm
 ```
 
 ## Upgrade Step
+To keep up with the latest binary version, everything is covered, you can simply run the command below
 ```bash copy
-docker compose down
-docker compose rm
-docker image rm cortensor-image
-docker build --no-cache -t cortensor-image .
-docker compose up -d
+bash upgrade.sh
 ```
