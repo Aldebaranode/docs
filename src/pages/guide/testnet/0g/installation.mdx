@@ -1,0 +1,247 @@
+import { Callout, Code, CopyToClipboard, Playground, Tabs } from 'nextra/components'
+
+export const nodeName = '0G Testnet'
+
+## {nodeName} Installation Guide
+
+<Callout type="info">
+  This guide provides step-by-step instructions for installing a {nodeName} node on your system. Before you begin, ensure you have the necessary prerequisites.
+</Callout>
+
+
+## Prerequisites
+
+* **Operating System:** Linux (Ubuntu/Debian recommended) or macOS
+* **Go:** Version 1.18 or higher
+* **Git:** For cloning the repository
+* **Terminal:**  Access to a command-line interface
+
+### Hardware Requirement
+
+<Callout type="warning">
+  Ensure your system meets the following hardware requirements to run the {nodeName} node efficiently:
+</Callout>
+
+* **CPU:** 8 cores or more
+* **RAM:** 64 GB or more
+* **Disk Space:** 1000 GB SSD NVMe or more
+* **Network:** Broadband internet connection with at least 100 Mbps upload/download speed
+
+## Installation
+### 1. Setup prerequisites
+
+```bash filename="Install Package" copy
+sudo apt update -q
+sudo apt install -y -qq make unzip clang pkg-config lz4 libssl-dev build-essential git jq ncdu bsdmainutils htop aria2 pv
+```
+
+```bash filename="Install Go" copy
+GO_VERSION=$(curl -s https://go.dev/VERSION?m=text | head -n1)
+wget "https://dl.google.com/go/${GO_VERSION}.linux-amd64.tar.gz"
+sudo tar -C /usr/local -xzf "${GO_VERSION}.linux-amd64.tar.gz"
+rm "${GO_VERSION}.linux-amd64.tar.gz"
+echo "export GOROOT=/usr/local/go" | tee -a ~/.profile
+echo "export GOPATH=\$HOME/go" | tee -a ~/.profile
+echo "export PATH=\$PATH:/usr/local/go/bin:\$HOME/go/bin" | tee -a ~/.profile
+source ~/.profile
+```
+
+### 2. Install 0G Binary
+
+```bash filename="Install 0G" copy
+git clone https://github.com/0glabs/0g-chain.git
+cd 0g-chain
+git checkout v0.5.0
+git submodule update --init
+make install
+0gchaind version
+```
+
+Verify the installation by checking the version
+```bash copy
+0gchaind version
+```
+
+### 3. Configure the Node
+Use `0gchaind init` to set up your node for the Odyssey testnet. Replace `'Your Node Name'` with a unique identifier.
+```bash copy
+CHAIN_ID='zgtendermint_16600-2'
+MONIKER='Your Node Name'
+DAEMON_HOME=$HOME/.0gchain
+0gchaind config keyring-backend os
+0gchaind config chain-id $OG_CHAIN_ID
+0gchaind init $MONIKER --chain-id $OG_CHAIN_ID --home $DAEMON_HOME
+0gchaind config node tcp://localhost:26657
+```
+
+### 4. Download genesis.json file
+```bash copy
+```
+
+### 4. Configure the Settings
+```bash copy
+DAEMON_HOME=$HOME/.0gchain
+rm $DAEMON_HOME/config/genesis.json
+wget -P $DAEMON_HOME/config https://github.com/0glabs/0g-chain/releases/download/v0.2.3/genesis.json
+
+sed -i -e "s/^pruning *=.*/pruning = \"custom\"/" $DAEMON_HOME/config/app.toml
+sed -i -e "s/^pruning-keep-recent *=.*/pruning-keep-recent = \"100\"/" $DAEMON_HOME/config/app.toml
+sed -i -e "s/^pruning-interval *=.*/pruning-interval = \"50\"/" $DAEMON_HOME/config/app.toml
+```
+
+Change custom port (optional)
+```bash copy
+DAEMON_HOME=$HOME/.0gchain
+PORT_PREFIX=26
+sed -i -e "
+s%:1317%:${PORT_PREFIX}317%g;
+s%:8080%:${PORT_PREFIX}080%g;
+s%:9090%:${PORT_PREFIX}090%g;
+s%:9091%:${PORT_PREFIX}091%g;
+s%:8545%:${PORT_PREFIX}545%g;
+s%:8546%:${PORT_PREFIX}546%g;
+s%:6065%:${PORT_PREFIX}065%g
+" $DAEMON_HOME/config/app.toml
+```
+
+### 5. Install and Initialize Cosmovisor
+Download the Cosmovisor binary using the `go install` command
+```bash copy
+go install cosmossdk.io/tools/cosmovisor/cmd/cosmovisor@latest
+cosmovisor version
+```
+Initialize Cosmovisor
+```bash copy
+DAEMON_NAME=0gd DAEMON_HOME=$HOME/.0gchain cosmovisor init $(which 0gchaind)
+```
+
+### 6. Create Service
+
+To ensure that the 0G Node processes run continuously and restart automatically on failure, you can create a systemd service. This will help manage the lifecycle of the processes and ensure they start on boot.
+
+Create a new systemd service file :
+```bash filename="Create 0G Service" copy
+sudo tee /etc/systemd/system/0gd.service >/dev/null <<EOF
+[Unit]
+Description=Cosmovisor 0G Chain
+After=network-online.target
+
+[Service]
+User=$USER
+Type=simple
+WorkingDirectory=$HOME/.0gchain
+ExecStart=$(which cosmovisor) run start --home $HOME/.0gchain
+Restart=on-failure
+RestartSec=3
+LimitNOFILE=infinity
+LimitNPROC=infinity
+Environment="DAEMON_NAME=0gd"
+Environment="DAEMON_HOME=$HOME/.0gchain"
+Environment="UNSAFE_SKIP_BACKUP=true"
+Environment="PATH=$PATH"
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+Now apply the service configuration and start the services
+```bash copy
+sudo systemctl enable 0gd.service
+sudo systemctl restart 0gd.service
+```
+
+To check the logs for the 0G Chain service, use the following command:
+```bash copy
+sudo journalctl -fu 0gd -o cat
+```
+
+### 6. Applying Peers
+To enhance network synchronization, we recommend applying our peers by following the steps below, or you can change the RPC URL to your own desired RPC URL:
+```bash copy
+PERSISTENT_PEERS=$(curl "https://scan.aldebaranode.xyz/api/scan/peers?rpc_url=https://rpc-a0gi-testnet.aldebaranode.xyz" | jq -r 'flatten | join(",")')
+sed -i.bak -e "s/^persistent_peers *=.*/persistent_peers = \"$PERSISTENT_PEERS\"/" $HOME/.0gchain/config/config.toml
+```
+```bash copy
+sudo systemctl restart 0gd.service
+```
+
+### 7. Applying Snapshot
+To apply a snapshot for faster synchronization, follow the steps below:
+
+#### Download snapshot
+<Tabs items={['Joseph Tran']}>
+  <Tabs.Tab>
+```bash copy
+SNAP_NAME=light_0gchain_snapshot.lz4
+SNAPSHOT_URL="https://josephtran.co/$SNAP_NAME"
+(echo $SNAPSHOT_URL;) | aria2c -x 16 -s 16 -k 1M -i -
+```
+  </Tabs.Tab>
+</Tabs>
+
+#### Stop Service
+```bash copy
+sudo systemctl stop 0gd
+```
+
+#### Backup Files
+```bash copy
+cp $HOME/.0gchain/data/priv_validator_state.json $HOME/.0gchain/priv_validator_state.json.backup
+```
+
+#### Remove Old Data
+```bash copy
+0gchaind tendermint unsafe-reset-all --home $HOME/.0gchain --keep-addr-book
+```
+
+#### Extract Snapshot
+```bash copy
+lz4 -d -c $SNAP_NAME | pv | tar xv -C $HOME/.0gchain/ > /dev/null
+```
+
+#### Restore Files
+```bash copy
+cp $HOME/.0gchain/priv_validator_state.json.backup $HOME/.0gchain/data/priv_validator_state.json
+```
+
+#### Start Service
+```bash copy
+sudo systemctl start 0gd
+```
+
+### 8. Setup Validator
+#### Wallet Config
+```bash copy
+0gchaind keys add "WALLET" --eth
+```
+
+#### Get Token
+Get testnet tokens through faucet
+- [Official Faucet](https://faucet.0g.ai/)
+- Discord Faucet
+- [Joseph Tran Community Faucet](https://0g-faucet.j-node.net/)
+
+#### Check Balance
+```bash copy
+0gchaind q bank balances $(0gchaind keys show "WALLET" -a)
+```
+
+#### Create Validator
+```bash copy
+0gchaind tx staking create-validator \
+  --amount=1000ua0gi \
+  --pubkey=$(0gchaind tendermint show-validator) \
+  --moniker="Your_node_name" \
+  --chain-id=zgtendermint_16600-2 \
+  --commission-rate="0.10" \
+  --commission-max-rate="0.20" \
+  --commission-max-change-rate="0.01" \
+  --details="Your validator description" \
+  --min-self-delegation="1" \
+  --from="WALLET" \
+  --gas=auto \
+  --gas-adjustment=1.4 \
+  --gas-prices 0.00252ua0gi \
+  -y
+```
