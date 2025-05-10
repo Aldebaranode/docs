@@ -1,0 +1,122 @@
+import { Callout } from 'nextra/components'
+
+# Sequencer Node Simple Installation 
+
+## Prerequisites
+Ensure that you meet the hardware requirements to run the Aztec sequencer node. A computer running Linux or MacOS with the following specifictions:
+
+* **CPU**: 8-cores
+* **RAM**: 16 GiB
+* **Storage**: 1 TB SSD
+
+A Network connection of at least 25 Mbps up/down.
+
+
+## Installation
+### Step 1 - Docker Installation
+Run the following command to uninstall all conflicting packages:
+```bash copy
+for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
+```
+
+Set up Docker's apt repository.
+```bash copy
+# Add Docker's official GPG key:
+sudo apt-get update
+sudo apt-get install ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+```
+
+Install the Docker packages.
+
+```bash copy
+sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
+```
+
+### Step 2 - Install Aztec Binary
+Run the command below to install aztec tools
+```bash copy
+bash -i <(curl -s https://install.aztec.network)
+```
+
+### Step 3 - Config Docker Compose
+Copy docker compose configuration below and adjust variable according to your account
+```yml copy
+name: aztec-node
+services:
+  node:
+    image: aztecprotocol/aztec:alpha-testnet
+    environment:
+      ETHEREUM_HOSTS: $EVM_API_RPC
+      L1_CONSENSUS_HOST_URLS: $BEACON_API_RPC
+      VALIDATOR_PRIVATE_KEY: $VALIDATOR_PK
+      COINBASE: $VALIDATOR_ADDRESS
+      P2P_IP: $SERVER_IP
+      DATA_DIRECTORY: /data
+    entrypoint: >
+      sh -c 'node --no-warnings /usr/src/yarn-project/aztec/dest/bin/index.js start --network alpha-testnet start --node --archiver --sequencer'
+    ports:
+      - 40400:40400/tcp
+      - 40400:40400/udp
+      - 8080:8080
+    volumes:
+      - ~/.aztec/alpha-testnet/data:/data
+```
+Details
+- **EVM_API_RPC** : The HTTP-RPC endpoint for your execution node, obtained from RPC Provider (Ankr, Infura, D-RPC, Alchemy) or Running your own geth node.
+- **BEACON_API_RPC** : The REST API endpoint for your consensus node, obtained from RPC Provider (D-RPC, Ankr) or Running your own consensus node.
+- **VALIDATOR_PK** : An Ethereum private key for your sequencer.
+- **VALIDATOR_ADDRESS** : The public address derived from your VALIDATOR_PK.
+- **SERVER_IP** : Your server IP, obtain it using ```curl -s ifconfig.co/ip```
+
+You could run your own geth & consensus node using the [guide](/guide/testnet/eth-sepolia/installation) from us
+
+### Step 4 - Run Docker Compose
+Execute the command below to run your node via docker compose
+```bash copy
+docker compose up -d
+```
+
+### Step 5 - Sync Your Node
+Look for your node logs and monitor it carefully using the command below
+```bash copy
+docker compose logs --tail 100 -f
+```
+
+## Check Block Number & Proof
+To obtain recent block number & its proof you can use the command below
+```bash copy
+RPC="http://127.0.0.1:8080";
+block=$(curl -s -H 'Content-Type: application/json' -d '{"jsonrpc":"2.0","method":"node_getL2Tips","params":[],"id":67}' $RPC | jq -r .result.proven.number); 
+proof=$(curl -s -H 'Content-Type: application/json' -d "{\"jsonrpc\":\"2.0\",\"method\":\"node_getArchiveSiblingPath\",\"params\":[\"$block\",\"$block\"],\"id\":67}" $RPC | jq -r .result); 
+echo "Block Number: $block"; 
+echo "Proof: $proof"; 
+```
+
+## Validator Registration
+To register your sequencer node as a validator you can use the command below
+```bash copy
+aztec add-l1-validator \
+  --l1-rpc-urls $EVM_API_RPC \
+  --private-key $VALIDATOR_PRIVATE_KEY \
+  --attester $VALIDATOR_ADDRESS \
+  --proposer-eoa $VALIDATOR_ADDRESS \
+  --staking-asset-handler 0xF739D03e98e23A7B65940848aBA8921fF3bAc4b2 \
+  --l1-chain-id 11155111
+```
+
+## Delete Node
+To delete node & data you can run the command below
+```bash copy
+docker compose down
+sudo rm -r ~/.aztec
+```

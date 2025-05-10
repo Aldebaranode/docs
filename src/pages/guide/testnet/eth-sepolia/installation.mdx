@@ -1,0 +1,77 @@
+# ETH Sepolia Simple Installation 
+
+## Prerequisites
+Ensure that you meet the hardware requirements to run the ETH Sepolia full node. A computer running Linux or MacOS with the following specifictions:
+
+* **CPU**: 8-cores
+* **RAM**: 16 GiB
+* **Storage**: 1 TB SSD
+
+A Network connection of at least 25 Mbps up/down.
+
+## Installation
+### 1. Setup Docker Compose
+Copy the docker compose config below and run
+```yml copy
+services:
+  geth-sepolia:
+    container_name: geth-sepolia
+    image: ethereum/client-go:stable
+    restart: unless-stopped
+    command:
+      --sepolia
+      --http
+      --http.addr=0.0.0.0
+      --ws
+      --ws.addr=0.0.0.0
+      --authrpc.jwtsecret=/jwt/jwtsecret
+      --authrpc.addr=0.0.0.0
+      --authrpc.vhosts="*"
+      --ipcdisable
+      --syncmode full
+      --cache 4096
+      --metrics
+    volumes:
+      - '~/.geth-sepolia:/data'
+      - '~/.geth-sepolia/jwt:/jwt'
+    ports:
+      - '30303:30303'   # p2p discovery
+      - '8545:8545'     # HTTP-RPC
+      - '8546:8546'     # WS-RPC
+      - '8551:8551'     # Engine API (auth)
+      - '6060:6060'     # Metrics
+
+  prysm-sepolia:
+    container_name: prysm-sepolia
+    image: gcr.io/prysmaticlabs/prysm/beacon-chain:stable
+    restart: unless-stopped
+    command:
+      --datadir=/data
+      --jwt-secret=/jwt/jwtsecret
+      --execution-endpoint=http://geth-sepolia:8551
+      --genesis-beacon-api-url=https://sepolia.beaconstate.info
+      --checkpoint-sync-url=https://sepolia.beaconstate.info
+      --enable-experimental-backfill=true
+      --sepolia
+      --accept-terms-of-use
+    volumes:
+      - "~/.prysm-sepolia:/data"
+      - "~/.geth-sepolia/jwt:/jwt"
+    ports:
+      - '13000:13000'     # P2P TCP
+      - '12000:12000/udp' # P2P UDP
+      - '5052:5052'       # Beacon REST API
+      - '4000:4000'       # gRPC endpoint
+      - '8080:8080'       # Metrics
+```
+
+### 2. Run Node
+```bash copy
+docker compose up -d
+```
+
+### 3. Wait For Sync
+Check your node sync height using the command below
+```bash copy
+curl -X POST --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' -H "Content-Type: application/json" http://127.0.0.1:8545
+```
