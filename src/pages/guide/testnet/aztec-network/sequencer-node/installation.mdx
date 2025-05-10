@@ -42,13 +42,7 @@ Install the Docker packages.
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 ```
 
-### Step 2 - Install Aztec Binary
-Run the command below to install aztec tools
-```bash copy
-bash -i <(curl -s https://install.aztec.network)
-```
-
-### Step 3 - Config Docker Compose
+### Step 2 - Config Docker Compose
 Copy docker compose configuration below and adjust variable according to your account
 ```yml copy
 name: aztec-node
@@ -80,13 +74,13 @@ Details
 
 You could run your own geth & consensus node using the [guide](/guide/testnet/eth-sepolia/installation) from us
 
-### Step 4 - Run Docker Compose
+### Step 3 - Run Docker Compose
 Execute the command below to run your node via docker compose
 ```bash copy
 docker compose up -d
 ```
 
-### Step 5 - Sync Your Node
+### Step 4 - Monitor Your Node
 Look for your node logs and monitor it carefully using the command below
 ```bash copy
 docker compose logs --tail 100 -f
@@ -103,6 +97,12 @@ echo "Proof: $proof";
 ```
 
 ## Validator Registration
+Run the command below to install aztec tools
+```bash copy
+bash -i <(curl -s https://install.aztec.network)
+echo 'export PATH=$PATH:~/.aztec/bin' >> ~/.profile
+source ~/.profile
+```
 To register your sequencer node as a validator you can use the command below
 ```bash copy
 aztec add-l1-validator \
