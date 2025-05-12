@@ -1,18 +1,22 @@
-# ETH Sepolia Simple Installation 
+# ETH Sepolia Simple Installation
 
 ## Prerequisites
-Ensure that you meet the hardware requirements to run the ETH Sepolia full node. A computer running Linux or MacOS with the following specifictions:
 
-* **CPU**: 8-cores
+Ensure that you meet the hardware requirements to run an ETH Sepolia full node. You will need a computer running Linux or macOS with the following specifications:
+
+* **CPU**: 8 cores
 * **RAM**: 16 GiB
 * **Storage**: 1 TB SSD
 
-A Network connection of at least 25 Mbps up/down.
+A network connection capable of at least 25 Mbps up and down.
 
 ## Installation
-### 1. Setup Docker Compose
-Copy the docker compose config below and run
-```yml copy
+
+### 1. Set Up Docker Compose
+
+Copy the Docker Compose configuration below and then run:
+
+```yml
 services:
   geth-sepolia:
     container_name: geth-sepolia
@@ -49,8 +53,8 @@ services:
       --datadir=/data
       --jwt-secret=/jwt/jwtsecret
       --execution-endpoint=http://geth-sepolia:8551
-      --genesis-beacon-api-url=https://sepolia.beaconstate.info
-      --checkpoint-sync-url=https://sepolia.beaconstate.info
+      --genesis-beacon-api-url=https://checkpoint-sync.sepolia.ethpandaops.io
+      --checkpoint-sync-url=https://checkpoint-sync.sepolia.ethpandaops.io
       --enable-experimental-backfill=true
       --sepolia
       --accept-terms-of-use
@@ -65,13 +69,26 @@ services:
       - '8080:8080'       # Metrics
 ```
 
-### 2. Run Node
-```bash copy
+**Alternative URL**
+
+```txt
+--genesis-beacon-api-url=https://sepolia.beaconstate.info
+--checkpoint-sync-url=https://sepolia.beaconstate.info
+```
+
+### 2. Run the Node
+
+```bash
 docker compose up -d
 ```
 
-### 3. Wait For Sync
-Check your node sync height using the command below
-```bash copy
-curl -X POST --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' -H "Content-Type: application/json" http://127.0.0.1:8545
+### 3. Wait for Sync
+
+Check your node’s sync status by running:
+
+```bash
+curl -X POST \
+  --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' \
+  -H "Content-Type: application/json" \
+  http://127.0.0.1:8545
 ```

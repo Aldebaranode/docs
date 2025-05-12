@@ -99,6 +99,7 @@ echo "Proof: $proof";
 ## Validator Registration
 Run the command below to install aztec tools
 ```bash copy
+sudo chown -R $USER:$USER ~/.aztec
 bash -i <(curl -s https://install.aztec.network)
 echo 'export PATH=$PATH:~/.aztec/bin' >> ~/.profile
 source ~/.profile
