@@ -32,9 +32,10 @@ services:
       --authrpc.addr=0.0.0.0
       --authrpc.vhosts="*"
       --ipcdisable
-      --syncmode full
+      --syncmode snap
       --cache 4096
       --metrics
+      --datadir=/data
     volumes:
       - '~/.geth-sepolia:/data'
       - '~/.geth-sepolia/jwt:/jwt'
@@ -50,6 +51,12 @@ services:
     image: gcr.io/prysmaticlabs/prysm/beacon-chain:stable
     restart: unless-stopped
     command:
+      --rpc-host=0.0.0.0
+      --grpc-gateway-host=0.0.0.0
+      --monitoring-host=0.0.0.0
+      --p2p-tcp-port=13000
+      --p2p-udp-port=12000
+      --grpc-gateway-port=5052
       --datadir=/data
       --jwt-secret=/jwt/jwtsecret
       --execution-endpoint=http://geth-sepolia:8551
