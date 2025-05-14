@@ -57,8 +57,10 @@ bash build.sh
 
 After the docker-compose.yaml is generated, you need to modify the environment variables for the cortensor section:
 - **RPC_URL**: Your ARB Sepolia RPC URL, which you can obtain by running your own node or using a service provider like Ankr, Alchemy, or Infura.
+- **ETH_RPC_URL**: Your ETH Mainnet RPC URL, leave it blank for default (default: https://ethereum-rpc.publicnode.com).
 - **PUBLIC_KEY**: The EVM address of your miner node.
 - **PRIVATE_KEY**: The EVM private key of your miner node.
+- **CONTRACT_ADDRESS_RUNTIME**: Runtime contract address, leave it blank for default from official repository.
 
 For more information about GPU support please refer to the [official website](https://docs.cortensor.network/getting-started/installation-and-setup#enable-gpu-support)
 
